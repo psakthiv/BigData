@@ -4,22 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.google.gson.Gson;
+
 import uk.ac.gla.dcs.bigdata.providedstructures.NewsArticle;
 
 public class Document {
 	
-	private String id; 
 	private NewsArticle newsArticle;
 	private List<String> tokenizedContents;
-	private List<NameValuePair> noOfOccurances;
+	private List<QueryTFPair> noOfOccurances;
 	private int currentDocumentLength;
-	
-	public String getId() {
-		return id;
-	}
-	public void setId(String id) {
-		this.id = id;
-	}
+	private double score;
+	private double totalTFInCorpus;
 	
 	public NewsArticle getNewsArticle() {
 		return newsArticle;
@@ -35,10 +31,10 @@ public class Document {
 		this.tokenizedContents = tokenizedContents;
 	}
 	
-	public List<NameValuePair> getNoOfOccurances() {
+	public List<QueryTFPair> getNoOfOccurances() {
 		return noOfOccurances;
 	}
-	public void setNoOfOccurances(List<NameValuePair> noOfOccurances) {
+	public void setNoOfOccurances(List<QueryTFPair> noOfOccurances) {
 		this.noOfOccurances = noOfOccurances;
 	}
 	
@@ -49,12 +45,18 @@ public class Document {
 		this.currentDocumentLength = currentDocumentLength;
 	}
 	
-	public void updateTokenizedContents(List<String> tokenizedContents) {
-		if(Objects.isNull(this.tokenizedContents)){
-			this.tokenizedContents = new ArrayList<String>();
-		}
-		this.tokenizedContents.addAll(tokenizedContents);
-		
+	public double getScore() {
+		return score;
+	}
+	public void setScore(double score) {
+		this.score = score;
+	}
+	
+	public double getTotalTFInCorpus() {
+		return totalTFInCorpus;
+	}
+	public void setTotalTFInCorpus(double totalTFInCorpus) {
+		this.totalTFInCorpus = totalTFInCorpus;
 	}
 	
 

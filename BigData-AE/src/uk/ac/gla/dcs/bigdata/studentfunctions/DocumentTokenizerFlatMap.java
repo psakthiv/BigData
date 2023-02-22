@@ -25,7 +25,6 @@ public class DocumentTokenizerFlatMap implements FlatMapFunction<NewsArticle,Doc
 		TextPreProcessor preProcessor = new TextPreProcessor();
 		List<Document> documentList = new ArrayList<Document>();
 		Document document = new Document();
-		document.setId(newsArticle.getId());
 		document.setNewsArticle(newsArticle);
 
 		List<String> stringList = new ArrayList<String>();
@@ -40,7 +39,7 @@ public class DocumentTokenizerFlatMap implements FlatMapFunction<NewsArticle,Doc
 
 				//System.out.println("*********stringList**********");
 				//System.out.println(stringList);
-				document.updateTokenizedContents(stringList);
+				document.setTokenizedContents(stringList);
 			}
 			
 		});

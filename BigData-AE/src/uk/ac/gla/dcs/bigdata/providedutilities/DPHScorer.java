@@ -33,7 +33,9 @@ public class DPHScorer {
 							
 					// calculate the f and normalization components of DPH
 					double f = WeightingModelLibrary.relativeFrequency(termFrequencyInCurrentDocument, currentDocumentLength);
+					System.out.println(f + " ==> f from DPH Scorer!!");
 					double norm = (1d-f) * (1d -f)/(termFrequencyInCurrentDocument+1d);
+					System.out.println(norm + " ==> norm from DPH Scorer!!");
 					 
 					// calculate DPH score
 					double DPHScore = norm 

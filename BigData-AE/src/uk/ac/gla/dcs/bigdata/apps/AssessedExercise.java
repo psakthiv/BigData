@@ -8,8 +8,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
@@ -55,7 +53,7 @@ public class AssessedExercise {
 		if (queryFile==null) queryFile = "data/queries.list"; 
 		
 		String newsFile = System.getenv("bigdata.news");
-		if (newsFile==null) newsFile = "data/SampleJson3.json"; 
+		if (newsFile==null) newsFile = "data/TREC_Washington_Post_collection.v3.example.json"; 
 		
 		List<DocumentRanking> results = rankDocuments(spark, queryFile, newsFile);
 		
@@ -75,10 +73,14 @@ public class AssessedExercise {
 		
 	}
 	
+	
 	public static List<DocumentRanking> rankDocuments(SparkSession spark, String queryFile, String newsFile) {
 		
 		Dataset<Row> queriesjson = spark.read().text(queryFile);
 		Dataset<Row> newsjson = spark.read().text(newsFile); 
+		
+
+		
 		
 		Encoder<NewsArticle> newsArticleEncoder = Encoders.bean(NewsArticle.class);
 		Encoder<Query> queryEncoder = Encoders.bean(Query.class);
@@ -86,25 +88,19 @@ public class AssessedExercise {
 		Dataset<Query> queries = queriesjson.map(new QueryFormaterMap(), queryEncoder); 
 		Dataset<NewsArticle> news = newsjson.map(new NewsFormaterMap(), newsArticleEncoder);
 		
-		
 		Set<String> querywords = new HashSet<String>();
-		
 		List<Query> queryList = queries.collectAsList();
 		
 		queryList.forEach(query ->{
 			querywords.addAll(query.getQueryTerms().stream().collect(Collectors.toSet()));
 		});
 		
-		
-		Broadcast<Set<String>> broadcastStopwords = JavaSparkContext.fromSparkContext(spark.sparkContext()).broadcast(querywords);
-		
 		Gson gson = new Gson();
 		
 		CollectionAccumulator<HashMap> totalFrequencyInCorpus = spark.sparkContext().collectionAccumulator();
 		LongAccumulator documentLengthInCorpus = spark.sparkContext().longAccumulator();
-		
-		
-		
+		CollectionAccumulator<DocumentRanking> documentRankingList = spark.sparkContext().collectionAccumulator();
+
 		FilterNTokenizeFlatMap filterTokenizeMap = new FilterNTokenizeFlatMap(queryList, totalFrequencyInCorpus, documentLengthInCorpus);
 		Encoder<Document> documentEncoder = Encoders.bean(Document.class);
 		Dataset<Document> tokenizedDocument = news.flatMap(filterTokenizeMap, documentEncoder);
@@ -114,29 +110,32 @@ public class AssessedExercise {
 		
 		
 		//double averageDocumentLengthInCorpus, long totalDocsInCorpus
-		DPHRankingMap dphRankingMap = new DPHRankingMap(totalFrequencyInCorpus, averageDocumentLengthInCorpus, totalDocumentLength);
+		/*DPHRankingMap dphRankingMap = new DPHRankingMap(totalFrequencyInCorpus, averageDocumentLengthInCorpus, totalDocumentLength, documentRankingList);
 		Dataset<Document> rankedDocuments = tokenizedDocument.flatMap(dphRankingMap, documentEncoder);
-		rankedDocuments.count();
+		rankedDocuments.count();*/
 	
-
+		List<DocumentRanking> documentRanking = documentRankingList.value();
 		//System.out.println(tokenizedDocument.count() + " ==> tokenizedDocument.count()");
 		
-		System.out.println("*******tokenizedDocumentJSON*******");
+		//System.out.println("*******tokenizedDocumentJSON*******");
 		//System.out.println(gson.toJson(tokenizedDocument.collectAsList()).toString());
 		
 		
 		
-		System.out.println("*******totalCorpus*******");
-		System.out.println(gson.toJson(totalFrequencyInCorpus).toString());
+		//System.out.println("*******totalCorpus*******");
+		//System.out.println(gson.toJson(totalFrequencyInCorpus).toString());
 		
-		System.out.println("*******totalFrequencyInCorpus.value().get(0)*******");
-		System.out.println(gson.toJson(totalFrequencyInCorpus.value().get(0)).toString());
+		//System.out.println("*******documentRanking*******");
+		//System.out.println(gson.toJson(documentRanking).toString());
 		
-		System.out.println("*******totalFrequencyInCorpus.value().get(0)*******");
-		System.out.println(gson.toJson(totalFrequencyInCorpus.value().get(0)).toString());
+		//System.out.println("*******totalFrequencyInCorpus.value().get(0)*******");
+		//System.out.println(gson.toJson(totalFrequencyInCorpus.value().get(0)).toString());
 		
-		System.out.println("*******documentLengthInCorpus*******");
-		System.out.println(gson.toJson(documentLengthInCorpus.value()).toString());
+		//System.out.println("*******totalFrequencyInCorpus.value().get(0)*******");
+		//System.out.println(gson.toJson(totalFrequencyInCorpus.value().get(0)).toString());
+		
+		//System.out.println("*******documentLengthInCorpus*******");
+		//System.out.println(gson.toJson(documentLengthInCorpus.value()).toString());
 		
 		
 		 
